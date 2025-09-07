@@ -1,0 +1,27 @@
+{
+  "name": "Printernizer",
+  "version": "1.0.0",
+  "slug": "printernizer",
+  "description": "Run Printernizer as a Home Assistant addon.",
+  "url": "https://github.com/schmacka/printernizer",
+  "startup": "application",
+  "boot": "auto",
+  "webui": "http://[HOST]:[PORT:8080]/",
+  "ingress": true,
+  "ingress_port": 8080,
+  "panel_icon": "mdi:printer-3d",
+  "arch": [
+    "amd64",
+    "armv7",
+    "aarch64"
+  ],
+  "ports": {
+    "8080/tcp": 8080
+  },
+  "map": [
+    "config:rw",
+    "ssl"
+  ],
+  "options": {},
+  "schema": {}
+}

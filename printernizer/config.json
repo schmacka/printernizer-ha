@@ -1,0 +1,55 @@
+{
+  "description": "Printernizer configuration file",
+  "version": "1.0",
+  "settings": {
+    "printer": {
+      "name": "Prusa i3",
+      "type": "FDM",
+      "nozzleDiameter": 0.4,
+      "filamentDiameter": 1.75
+    },
+    "printQuality": {
+      "layerHeight": 0.2,
+      "infillDensity": 20,
+      "printSpeed": 60
+    },
+    "material": {
+      "type": "PLA",
+      "color": "red",
+      "temperature": {
+        "nozzle": 210,
+        "bed": 60
+      }
+    }
+  },
+  "slices": [
+    {
+      "name": "draft",
+      "settings": {
+        "layerHeight": 0.3,
+        "infillDensity": 10,
+        "printSpeed": 80
+      }
+    },
+    {
+      "name": "normal",
+      "settings": {
+        "layerHeight": 0.2,
+        "infillDensity": 20,
+        "printSpeed": 60
+      }
+    },
+    {
+      "name": "high",
+      "settings": {
+        "layerHeight": 0.1,
+        "infillDensity": 30,
+        "printSpeed": 40
+      }
+    }
+  ],
+  "scripts": {
+    "beforePrint": "G28 ; Home all axes",
+    "afterPrint": "M104 S0 ; Turn off nozzle heater"
+  }
+}
