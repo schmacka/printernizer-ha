@@ -49,7 +49,9 @@ jobs:
           context: .
           platforms: linux/amd64
           push: true
-          tags: ${{ env.REGISTRY }}/${{ github.repository }}-amd64:${{ github.event.release.tag_name || 'latest' }}
+          tags: |
+            ${{ env.REGISTRY }}/${{ github.repository }}-amd64:latest
+            ${{ env.REGISTRY }}/${{ github.repository }}-amd64:${{ github.event.release.tag_name && github.event.release.tag_name || 'latest' }}
           labels: ${{ steps.meta.outputs.labels }}
 
       - name: Build and push arm64 image
@@ -58,7 +60,9 @@ jobs:
           context: .
           platforms: linux/arm64
           push: true
-          tags: ${{ env.REGISTRY }}/${{ github.repository }}-aarch64:${{ github.event.release.tag_name || 'latest' }}
+          tags: |
+            ${{ env.REGISTRY }}/${{ github.repository }}-aarch64:latest
+            ${{ env.REGISTRY }}/${{ github.repository }}-aarch64:${{ github.event.release.tag_name && github.event.release.tag_name || 'latest' }}
           labels: ${{ steps.meta.outputs.labels }}
 
       - name: Build and push armv7 image
@@ -67,5 +71,7 @@ jobs:
           context: .
           platforms: linux/arm/v7
           push: true
-          tags: ${{ env.REGISTRY }}/${{ github.repository }}-armv7:${{ github.event.release.tag_name || 'latest' }}
+          tags: |
+            ${{ env.REGISTRY }}/${{ github.repository }}-armv7:latest
+            ${{ env.REGISTRY }}/${{ github.repository }}-armv7:${{ github.event.release.tag_name && github.event.release.tag_name || 'latest' }}
           labels: ${{ steps.meta.outputs.labels }}
