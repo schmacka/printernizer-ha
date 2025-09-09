@@ -94,7 +94,7 @@ LABEL \
     io.hass.description="3D Printer Management for Home Assistant" \
     io.hass.arch="armhf|aarch64|i386|amd64" \
     io.hass.type="addon" \
-    io.hass.version="0.0.1"
+    io.hass.version="0.0.5"
 
 # Let s6-overlay handle the init process (PID 1)
 # The s6-overlay will automatically start services defined in /etc/services.d/
