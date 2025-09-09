@@ -1,92 +1,80 @@
-ARG BUILD_FROM=ghcr.io/home-assistant/aarch64-base:latest
+ARG BUILD_FROM=ghcr.io/home-assistant/base-python:3.11-alpine
 FROM ${BUILD_FROM}
 
-# Install dependencies
-RUN apk add --no-cache nodejs npm curl
+# Install system dependencies
+RUN apk add --no-cache \
+    git \
+    curl \
+    gcc \
+    musl-dev \
+    linux-headers
 
 # Create app directory
 WORKDIR /app
 
-# Create a minimal package.json since upstream repo is empty
-RUN echo '{\
-  "name": "printernizer",\
-  "version": "1.0.0",\
-  "description": "Printernizer 3D Printer Management",\
-  "main": "index.js",\
-  "scripts": {\
-    "start": "node index.js"\
-  },\
-  "dependencies": {\
-    "express": "^4.18.2"\
-  }\
-}' > package.json
+# Clone the upstream Printernizer repository
+RUN git clone https://github.com/schmacka/printernizer.git .
 
-# Install npm dependencies
-RUN npm install
-
-# Create a minimal Express server as placeholder
-RUN echo 'const express = require("express");\
-const app = express();\
-const port = process.env.PORT || 8080;\
-\
-app.get("/", (req, res) => {\
-  res.send(`\
-    <html>\
-      <head><title>Printernizer</title></head>\
-      <body>\
-        <h1>Printernizer 3D Printer Management</h1>\
-        <p>Welcome to Printernizer - your 3D printer management system.</p>\
-        <p>This addon is currently in development. The upstream repository is not yet ready.</p>\
-        <p>Check <a href="https://github.com/schmacka/printernizer">github.com/schmacka/printernizer</a> for updates.</p>\
-      </body>\
-    </html>\
-  `);\
-});\
-\
-app.listen(port, "0.0.0.0", () => {\
-  console.log(`Printernizer listening on port ${port}`);\
-});' > index.js
+# Install Python dependencies
+RUN pip install --no-cache-dir \
+    fastapi \
+    uvicorn[standard] \
+    aiosqlite \
+    aiohttp \
+    websockets \
+    pydantic \
+    paho-mqtt \
+    python-dotenv \
+    aiofiles
 
 # Create s6-overlay service directory
 RUN mkdir -p /etc/services.d/printernizer
 
 # Create s6-overlay service run script
-RUN echo '#!/usr/bin/with-contenv bashio\
-# ==============================================================================\
-# Start the Printernizer service\
-# s6-overlay docs: https://github.com/just-containers/s6-overlay\
-# ==============================================================================\
-\
-bashio::log.info "Starting Printernizer..."\
-\
-cd /app\
-exec npm start' > /etc/services.d/printernizer/run
+RUN echo '#!/usr/bin/with-contenv bashio\n\
+# ==============================================================================\n\
+# Start the Printernizer service\n\
+# s6-overlay docs: https://github.com/just-containers/s6-overlay\n\
+# ==============================================================================\n\
+\n\
+bashio::log.info "Starting Printernizer..."\n\
+\n\
+# Set up environment variables from Home Assistant options\n\
+export PORT=8000\n\
+export HOST=0.0.0.0\n\
+export DATABASE_URL=sqlite:////config/printernizer.db\n\
+\n\
+# Create config directory if it does not exist\n\
+mkdir -p /config\n\
+\n\
+cd /app\n\
+exec uvicorn main:app --host 0.0.0.0 --port 8000 --log-level info' > /etc/services.d/printernizer/run
 
 # Make the run script executable
 RUN chmod a+x /etc/services.d/printernizer/run
 
 # Create s6-overlay service finish script (optional, for cleanup)
-RUN echo '#!/usr/bin/with-contenv bashio\
-# ==============================================================================\
-# Take down the S6 supervision tree when the service fails\
-# s6-overlay docs: https://github.com/just-containers/s6-overlay\
-# ==============================================================================\
-\
-if [[ "$1" -ne 0 ]] && [[ "$1" -ne 256 ]]; then\
-  bashio::log.info "Printernizer crashed with exit code $1"\
-  bashio::log.info "Shutting down s6-overlay..."\
-  /run/s6/basedir/bin/halt\
+RUN echo '#!/usr/bin/with-contenv bashio\n\
+# ==============================================================================\n\
+# Take down the S6 supervision tree when the service fails\n\
+# s6-overlay docs: https://github.com/just-containers/s6-overlay\n\
+# ==============================================================================\n\
+\n\
+if [[ "$1" -ne 0 ]] && [[ "$1" -ne 256 ]]; then\n\
+  bashio::log.info "Printernizer crashed with exit code $1"\n\
+  bashio::log.info "Shutting down s6-overlay..."\n\
+  /run/s6/basedir/bin/halt\n\
 fi' > /etc/services.d/printernizer/finish
 
 # Make the finish script executable
 RUN chmod a+x /etc/services.d/printernizer/finish
 
 # Expose web port
-EXPOSE 8080
+EXPOSE 8000
 
 # Health check for Home Assistant
-HEALTHCHECK --interval=10s --timeout=3s --start-period=5s \
-  CMD curl --fail http://localhost:8080 || exit 1
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+  CMD curl --fail http://localhost:8000/health || exit 1
 
 # Labels for Home Assistant addon
 LABEL \
@@ -94,7 +82,7 @@ LABEL \
     io.hass.description="3D Printer Management for Home Assistant" \
     io.hass.arch="armhf|aarch64|i386|amd64" \
     io.hass.type="addon" \
-    io.hass.version="0.0.5"
+    io.hass.version="0.0.6"
 
 # Let s6-overlay handle the init process (PID 1)
 # The s6-overlay will automatically start services defined in /etc/services.d/

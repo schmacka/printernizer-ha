@@ -1,6 +1,6 @@
 {
   "name": "Printernizer",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "slug": "printernizer",
   "description": "Run Printernizer as a Home Assistant addon.",
   "url": "https://github.com/schmacka/printernizer",
@@ -8,10 +8,10 @@
   "startup": "services",
   "boot": "auto",
   "init": false,
-  "watchdog": "http://[HOST]:[PORT:8080]/",
-  "webui": "http://[HOST]:[PORT:8080]/",
+  "watchdog": "http://[HOST]:[PORT:8000]/health",
+  "webui": "http://[HOST]:[PORT:8000]/",
   "ingress": true,
-  "ingress_port": 8080,
+  "ingress_port": 8000,
   "panel_icon": "mdi:printer-3d",
   "arch": [
     "amd64",
@@ -19,15 +19,37 @@
     "aarch64"
   ],
   "ports": {
-    "8080/tcp": 8080
+    "8000/tcp": 8000
   },
   "ports_description": {
-    "8080/tcp": "Printernizer web interface"
+    "8000/tcp": "Printernizer web interface"
   },
   "map": [
     "config:rw",
     "ssl"
   ],
-  "options": {},
-  "schema": {}
+  "options": {
+    "bambu_printers": [],
+    "prusa_printers": [],
+    "timezone": "Europe/Berlin",
+    "vat_rate": 0.19
+  },
+  "schema": {
+    "bambu_printers": [
+      {
+        "name": "str",
+        "ip": "str",
+        "access_code": "str"
+      }
+    ],
+    "prusa_printers": [
+      {
+        "name": "str",
+        "ip": "str",
+        "api_key": "str"
+      }
+    ],
+    "timezone": "str",
+    "vat_rate": "float"
+  }
 }
