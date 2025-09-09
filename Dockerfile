@@ -1,4 +1,4 @@
-ARG BUILD_FROM=ghcr.io/home-assistant/base-python:3.11-alpine
+ARG BUILD_FROM=ghcr.io/hassio-addons/base:14.0.1
 FROM ${BUILD_FROM}
 
 # Install system dependencies
@@ -7,7 +7,10 @@ RUN apk add --no-cache \
     curl \
     gcc \
     musl-dev \
-    linux-headers
+    linux-headers \
+    python3 \
+    python3-dev \
+    py3-pip
 
 # Create app directory
 WORKDIR /app
@@ -16,7 +19,7 @@ WORKDIR /app
 RUN git clone https://github.com/schmacka/printernizer.git .
 
 # Install Python dependencies
-RUN pip install --no-cache-dir \
+RUN pip3 install --no-cache-dir \
     fastapi \
     uvicorn[standard] \
     aiosqlite \
@@ -80,9 +83,9 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
 LABEL \
     io.hass.name="Printernizer" \
     io.hass.description="3D Printer Management for Home Assistant" \
-    io.hass.arch="armhf|aarch64|i386|amd64" \
+    io.hass.arch="armhf|armv7|aarch64|i386|amd64" \
     io.hass.type="addon" \
-    io.hass.version="0.0.6"
+    io.hass.version="0.0.10"
 
 # Let s6-overlay handle the init process (PID 1)
 # The s6-overlay will automatically start services defined in /etc/services.d/
