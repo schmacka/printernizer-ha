@@ -1,6 +1,6 @@
 {
   "name": "Printernizer",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "slug": "printernizer",
   "description": "Run Printernizer as a Home Assistant addon.",
   "url": "https://github.com/schmacka/printernizer",
@@ -28,6 +28,5 @@
     "ssl"
   ],
   "options": {},
-  "schema": {},
-  "image": "ghcr.io/schmacka/printernizer-ha-{arch}"
+  "schema": {}
 }
