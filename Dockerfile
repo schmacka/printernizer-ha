@@ -2,15 +2,17 @@ ARG BUILD_FROM=ghcr.io/hassio-addons/base:14.0.1
 FROM ${BUILD_FROM}
 
 # Install system dependencies
-RUN apk add --no-cache \
-    git \
-    curl \
-    gcc \
-    musl-dev \
-    linux-headers \
-    python3 \
-    python3-dev \
-    py3-pip
+RUN apk update && \
+    apk add --no-cache \
+        python3 \
+        py3-pip \
+        curl \
+    && apk add --no-cache --virtual .build-deps \
+        git \
+        gcc \
+        musl-dev \
+        linux-headers \
+        python3-dev
 
 # Create app directory
 WORKDIR /app
@@ -28,7 +30,8 @@ RUN pip3 install --no-cache-dir \
     pydantic \
     paho-mqtt \
     python-dotenv \
-    aiofiles
+    aiofiles \
+    && apk del .build-deps
 
 # Create s6-overlay service directory
 RUN mkdir -p /etc/services.d/printernizer
