@@ -46,3 +46,4 @@ The addon is built through Home Assistant's addon system:
 - Supports multiple architectures for broad compatibility
 - Printer configuration includes temperature settings, layer heights, and G-code scripts
 - The upstream Printernizer project is cloned during Docker build process
+- On each commit increase version number. Use Major.Minor.Bugfix nomenclature

@@ -24,10 +24,6 @@ No configuration required for basic usage.
 
 Contributions are welcome! Feel free to submit a pull request or create an issue for any improvements or bug fixes.
 
-### License
-
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
-
 ---
 
 Enjoy using Printernizer with Home Assistant!
