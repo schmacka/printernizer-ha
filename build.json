@@ -1,0 +1,15 @@
+{
+  "build_from": {
+    "amd64": "ghcr.io/home-assistant/base-python:3.11-alpine3.18",
+    "armv7": "ghcr.io/home-assistant/base-python:3.11-alpine3.18",
+    "aarch64": "ghcr.io/home-assistant/base-python:3.11-alpine3.18"
+  },
+  "args": {
+    "PRINTERNIZER_VERSION": "main"
+  },
+  "labels": {
+    "io.hass.arch": "armhf|aarch64|amd64",
+    "io.hass.type": "addon",
+    "io.hass.version": "1.0.0"
+  }
+}

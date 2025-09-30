@@ -1,0 +1,92 @@
+name: "Printernizer"
+version: "1.0.0"
+slug: "printernizer"
+description: "Professional 3D printer management for Home Assistant"
+url: "https://github.com/schmacka/printernizer-ha"
+documentation: "https://github.com/schmacka/printernizer-ha/blob/main/README.md"
+codenotary: "sebastiankristof@gmail.com"
+arch:
+  - amd64
+  - armv7
+  - aarch64
+startup: application
+boot: auto
+init: false
+hassio_api: true
+hassio_role: default
+homeassistant_api: true
+host_network: true
+ingress: true
+ingress_port: 8000
+ingress_stream: false
+panel_icon: "mdi:printer-3d"
+panel_title: "Printernizer"
+panel_admin: false
+advanced: false
+stage: stable
+watchdog: "http://localhost:8000/api/v1/health"
+
+image: "ghcr.io/schmacka/printernizer-ha-{arch}"
+
+environment:
+  PYTHONPATH: "/opt/printernizer/src"
+  ENVIRONMENT: "production"
+  API_HOST: "0.0.0.0"
+  API_PORT: "8000"
+
+options:
+  log_level: "info"
+  database_path: "/data/printernizer.db"
+  downloads_path: "/data/downloads"
+  timezone: "Europe/Berlin"
+  currency: "EUR"
+  vat_rate: 19.0
+  enable_mqtt_discovery: true
+  mqtt_prefix: "homeassistant"
+  printer_polling_interval: 30
+  max_concurrent_downloads: 5
+  enable_notifications: true
+  cors_origins: ""
+  printers: []
+
+schema:
+  log_level: list(trace|debug|info|warning|error|fatal)?
+  database_path: str?
+  downloads_path: str?
+  timezone: str?
+  currency: str?
+  vat_rate: float(0,100)?
+  enable_mqtt_discovery: bool?
+  mqtt_prefix: str?
+  printer_polling_interval: int(10,300)?
+  max_concurrent_downloads: int(1,20)?
+  enable_notifications: bool?
+  cors_origins: str?
+  printers:
+    - name: str
+      type: list(bambu_lab|prusa_core)
+      ip_address: str
+      access_code: str?
+      api_key: str?
+      serial_number: str?
+      enabled: bool?
+
+ports:
+  8000/tcp: null
+
+ports_description:
+  8000/tcp: "Printernizer web interface (internal only, use Ingress)"
+
+map:
+  - data:rw
+
+backup_exclude:
+  - "**/__pycache__"
+  - "**/node_modules"
+  - "**/logs/*.log"
+  - "**/temp"
+
+services:
+  - mqtt:want
+
+webui: "[PROTO:ssl]://[HOST]:[PORT:8123]/api/hassio_ingress/[SLUG]"

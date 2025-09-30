@@ -1,0 +1,84 @@
+#!/usr/bin/with-contenv bashio
+# ==============================================================================
+# Printernizer Home Assistant Addon
+# S6-Overlay service script for Printernizer
+# ==============================================================================
+set -e
+
+# Wait for initialization to complete
+s6-svwait -u -t 5000 /var/run/s6/services/cont-init
+
+# Get configuration from Home Assistant
+declare log_level
+declare database_path
+declare downloads_path
+declare timezone
+declare currency
+declare vat_rate
+declare printer_polling_interval
+declare max_concurrent_downloads
+declare enable_mqtt_discovery
+declare mqtt_prefix
+declare enable_notifications
+
+log_level=$(bashio::config 'log_level' 'info')
+database_path=$(bashio::config 'database_path' '/data/printernizer.db')
+downloads_path=$(bashio::config 'downloads_path' '/data/downloads')
+timezone=$(bashio::config 'timezone' 'Europe/Berlin')
+currency=$(bashio::config 'currency' 'EUR')
+vat_rate=$(bashio::config 'vat_rate' '19.0')
+printer_polling_interval=$(bashio::config 'printer_polling_interval' '30')
+max_concurrent_downloads=$(bashio::config 'max_concurrent_downloads' '5')
+enable_mqtt_discovery=$(bashio::config 'enable_mqtt_discovery' 'true')
+mqtt_prefix=$(bashio::config 'mqtt_prefix' 'homeassistant')
+enable_notifications=$(bashio::config 'enable_notifications' 'true')
+
+# Export environment variables for Printernizer
+export LOG_LEVEL="${log_level^^}"
+export DATABASE_PATH="${database_path}"
+export DOWNLOADS_PATH="${downloads_path}"
+export TZ="${timezone}"
+export CURRENCY="${currency}"
+export VAT_RATE="${vat_rate}"
+export PRINTER_POLLING_INTERVAL="${printer_polling_interval}"
+export MAX_CONCURRENT_DOWNLOADS="${max_concurrent_downloads}"
+export ENVIRONMENT="production"
+export API_HOST="0.0.0.0"
+export API_PORT="8000"
+
+# MQTT configuration if available
+if bashio::config.true 'enable_mqtt_discovery' && bashio::services.available "mqtt"; then
+    export MQTT_HOST=$(bashio::services mqtt "host")
+    export MQTT_PORT=$(bashio::services mqtt "port")
+    export MQTT_USERNAME=$(bashio::services mqtt "username")
+    export MQTT_PASSWORD=$(bashio::services mqtt "password")
+    export MQTT_DISCOVERY_PREFIX="${mqtt_prefix}"
+    bashio::log.info "MQTT service configured: ${MQTT_HOST}:${MQTT_PORT}"
+else
+    bashio::log.info "MQTT discovery disabled or service not available"
+fi
+
+# Home Assistant API configuration
+if bashio::config.true 'enable_notifications'; then
+    export HASSIO_TOKEN="${SUPERVISOR_TOKEN}"
+    export HASSIO_API="http://supervisor/core/api"
+    bashio::log.info "Home Assistant notifications enabled"
+fi
+
+# Configure CORS for ingress
+export CORS_ORIGINS="https://$(bashio::addon.hostname)"
+
+# Log startup information
+bashio::log.info "Starting Printernizer with configuration:"
+bashio::log.info "  Log Level: ${LOG_LEVEL}"
+bashio::log.info "  Database: ${DATABASE_PATH}"
+bashio::log.info "  Downloads: ${DOWNLOADS_PATH}"
+bashio::log.info "  Timezone: ${TZ}"
+bashio::log.info "  Currency: ${CURRENCY} (VAT: ${VAT_RATE}%)"
+bashio::log.info "  Polling Interval: ${PRINTER_POLLING_INTERVAL}s"
+
+# Change to application directory
+cd /opt/printernizer/src
+
+# Run as printernizer user for security
+exec s6-setuidgid printernizer python3 main.py

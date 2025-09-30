@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Printernizer - 3D Printer Management</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        
+        .stat-card h3 {
+            color: #667eea;
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-card .value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .printers-section {
+            background: white;
+            border-radius: 10px;
+            padding: 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+        
+        .printers-section h2 {
+            color: #333;
+            margin-bottom: 1.5rem;
+            font-size: 1.8rem;
+        }
+        
+        .printer-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .printer-card {
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+        }
+        
+        .printer-card:hover {
+            border-color: #667eea;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
+        }
+        
+        .printer-card h3 {
+            color: #667eea;
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+        }
+        
+        .printer-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .printer-info .label {
+            font-weight: 600;
+            color: #666;
+        }
+        
+        .printer-info .value {
+            color: #333;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .status-unknown {
+            background-color: #6c757d;
+            color: white;
+        }
+        
+        .status-online {
+            background-color: #28a745;
+            color: white;
+        }
+        
+        .status-offline {
+            background-color: #dc3545;
+            color: white;
+        }
+        
+        .no-printers {
+            text-align: center;
+            color: #666;
+            font-style: italic;
+            padding: 2rem;
+        }
+        
+        .config-section {
+            background: white;
+            border-radius: 10px;
+            padding: 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .config-section h2 {
+            color: #333;
+            margin-bottom: 1.5rem;
+            font-size: 1.8rem;
+        }
+        
+        .config-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #e1e5e9;
+        }
+        
+        .config-item:last-child {
+            border-bottom: none;
+        }
+        
+        .config-label {
+            font-weight: 600;
+            color: #666;
+        }
+        
+        .config-value {
+            color: #333;
+            font-weight: 500;
+        }
+        
+        .api-links {
+            margin-top: 2rem;
+            text-align: center;
+        }
+        
+        .api-links a {
+            display: inline-block;
+            margin: 0 0.5rem;
+            padding: 0.5rem 1rem;
+            background: #667eea;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background 0.3s ease;
+        }
+        
+        .api-links a:hover {
+            background: #5a6fd8;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .printer-info {
+                grid-template-columns: 1fr;
+                gap: 0.25rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🖨️ Printernizer</h1>
+            <p>3D Printer Management for Home Assistant</p>
+        </div>
+        
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>Configured Printers</h3>
+                <div class="value">{{ printers|length }}</div>
+            </div>
+            <div class="stat-card">
+                <h3>MQTT Discovery</h3>
+                <div class="value">{{ "✓" if config.mqtt_discovery else "✗" }}</div>
+            </div>
+            <div class="stat-card">
+                <h3>Web Port</h3>
+                <div class="value">{{ config.web_port }}</div>
+            </div>
+        </div>
+        
+        <div class="printers-section">
+            <h2>Printers</h2>
+            {% if printers %}
+                <div class="printer-grid">
+                    {% for printer_id, printer in printers.items() %}
+                    <div class="printer-card">
+                        <h3>{{ printer.name or printer_id }}</h3>
+                        <div class="printer-info">
+                            <div class="label">Type:</div>
+                            <div class="value">{{ printer.type|title }}</div>
+                            <div class="label">Host:</div>
+                            <div class="value">{{ printer.host }}</div>
+                            {% if printer.type == 'bambu_lab' %}
+                            <div class="label">Device ID:</div>
+                            <div class="value">{{ printer.device_id }}</div>
+                            <div class="label">Serial:</div>
+                            <div class="value">{{ printer.serial }}</div>
+                            {% elif printer.type == 'prusa' %}
+                            <div class="label">API Key:</div>
+                            <div class="value">{{ "***" if printer.api_key else "Not Set" }}</div>
+                            {% endif %}
+                            <div class="label">Status:</div>
+                            <div class="value">
+                                <span class="status-badge status-unknown">Unknown</span>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="no-printers">
+                    <p>No printers configured. Add printers in the addon configuration.</p>
+                </div>
+            {% endif %}
+        </div>
+        
+        <div class="config-section">
+            <h2>Configuration</h2>
+            <div class="config-item">
+                <div class="config-label">Log Level</div>
+                <div class="config-value">{{ config.log_level|upper }}</div>
+            </div>
+            <div class="config-item">
+                <div class="config-label">MQTT Discovery</div>
+                <div class="config-value">{{ "Enabled" if config.mqtt_discovery else "Disabled" }}</div>
+            </div>
+            <div class="config-item">
+                <div class="config-label">Auto Configure MQTT</div>
+                <div class="config-value">{{ "Enabled" if config.auto_configure_mqtt else "Disabled" }}</div>
+            </div>
+            <div class="config-item">
+                <div class="config-label">Database Path</div>
+                <div class="config-value">{{ config.database_path }}</div>
+            </div>
+        </div>
+        
+        <div class="api-links">
+            <a href="/api/health">Health Check</a>
+            <a href="/api/config">API Config</a>
+            <a href="/api/printers">Printers API</a>
+        </div>
+    </div>
+    
+    <script>
+        // Auto-refresh status every 30 seconds
+        setInterval(() => {
+            fetch('/api/health')
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Health check:', data);
+                })
+                .catch(error => {
+                    console.error('Health check failed:', error);
+                });
+        }, 30000);
+    </script>
+</body>
+</html>
