@@ -4,11 +4,24 @@
 [![GitHub Release](https://img.shields.io/github/release/schmacka/printernizer-ha.svg)](https://github.com/schmacka/printernizer-ha/releases)
 [![License](https://img.shields.io/github/license/schmacka/printernizer-ha.svg)](LICENSE)
 
-Professional 3D printer management system as a Home Assistant addon. Monitor and manage your Bambu Lab A1 and Prusa Core One printers directly from Home Assistant with full ingress support and MQTT device discovery.
+Professional 3D printer management system as a **Home Assistant Supervisor Addon**. Monitor and manage your Bambu Lab A1 and Prusa Core One printers directly from Home Assistant with full ingress support and MQTT device discovery.
+
+> **Note**: This is a Home Assistant **Addon** (runs in Docker containers via Supervisor), not a HACS custom integration. It provides a complete web application accessible through Home Assistant's ingress system.
 
 ## About
 
 This addon packages the [Printernizer](https://github.com/schmacka/printernizer) 3D printer management system for seamless integration with Home Assistant. It provides comprehensive printer monitoring, job tracking, and file management capabilities optimized for Raspberry Pi deployment.
+
+### What is a Home Assistant Addon?
+
+This is a **Home Assistant Supervisor Addon**, which means:
+- ✅ **Containerized Application**: Runs as a Docker container managed by Home Assistant Supervisor
+- ✅ **Ingress Support**: Accessible directly through Home Assistant's web interface
+- ✅ **Configuration Integration**: Uses Home Assistant's addon configuration system
+- ✅ **MQTT Discovery**: Automatically creates entities in Home Assistant
+- ✅ **Supervisor Management**: Start/stop/restart through HA interface
+
+**Not a HACS Integration**: This is not installed through HACS (Home Assistant Community Store). It's a full addon that provides its own web interface and services.
 
 ## Features
 
@@ -23,18 +36,23 @@ This addon packages the [Printernizer](https://github.com/schmacka/printernizer)
 
 ## Installation
 
-### Via Home Assistant Community Store (HACS)
+### Via Add-on Repository (Recommended)
 
-1. **Add Repository**: In HACS, go to "Integrations" → "..." → "Custom repositories"
-2. **URL**: `https://github.com/schmacka/printernizer-ha`
-3. **Category**: "Add-on"
-4. **Install**: Search for "Printernizer" and install
+1. **Add Repository**: In Home Assistant, go to **Settings** → **Add-ons** → **Add-on Store** → **⋮** → **Repositories**
+2. **URL**: Add `https://github.com/schmacka/printernizer-ha`
+3. **Refresh**: The repository will be added and available in the store
+4. **Install**: Find **"Printernizer"** in the add-on store and click **"Install"**
+5. **Configure**: Set up your printers in the add-on configuration tab
+6. **Start**: Click **"Start"** to launch the add-on
+7. **Web UI**: Click **"Open Web UI"** to access the printer dashboard
 
 ### Manual Installation
 
-1. **Clone Repository**: Add this repository to your Home Assistant addons directory
-2. **Refresh**: Reload the addon store in Home Assistant
-3. **Install**: Find "Printernizer" in the local addons and install
+1. **SSH Access**: Enable SSH add-on and connect to your Home Assistant instance
+2. **Navigate**: `cd /addons`
+3. **Clone**: `git clone https://github.com/schmacka/printernizer-ha.git printernizer-ha`
+4. **Refresh**: Go to **Settings** → **Add-ons** → **Add-on Store** → **⋮** → **Reload**
+5. **Install**: Find **"Printernizer"** in **Local add-ons** and install
 
 ## Configuration
 

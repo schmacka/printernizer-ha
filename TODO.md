@@ -97,7 +97,7 @@ Package the Printernizer 3D printer management system as a Home Assistant addon 
 - [ ] Document printer setup procedures
 
 ### Distribution Preparation
-- [ ] Prepare for Home Assistant Community Store (HACS)
+- [ ] Prepare for Home Assistant Community Add-ons repository
 - [ ] Create release automation
 - [ ] Set up automated testing pipeline
 - [ ] Prepare submission materials
@@ -167,7 +167,7 @@ printernizer-ha/
 - [ ] Code review completed
 
 ### Distribution
-- [ ] Ready for HACS submission
+- [ ] Ready for Community Add-ons submission
 - [ ] Automated build pipeline operational
 - [ ] User guides and examples available
 - [ ] Support and maintenance plan in place

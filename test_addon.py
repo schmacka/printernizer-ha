@@ -12,7 +12,7 @@ import logging
 from pathlib import Path
 
 # Add app directory to path
-app_dir = Path(__file__).parent / "rootfs" / "app"
+app_dir = Path(__file__).parent / "printernizer" / "rootfs" / "app"
 sys.path.insert(0, str(app_dir))
 
 # Mock environment variables for testing
@@ -123,7 +123,7 @@ async def test_templates():
     try:
         from pathlib import Path
         
-        template_path = Path("rootfs/app/templates/index.html")
+        template_path = Path("printernizer/rootfs/app/templates/index.html")
         
         if template_path.exists():
             print("✅ Template files found")

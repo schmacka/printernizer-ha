@@ -1,0 +1,6 @@
+{
+  "name": "Printernizer Home Assistant Add-on Repository",
+  "url": "https://github.com/schmacka/printernizer-ha",
+  "maintainer": "Sebastian Macka",
+  "description": "3D printer management system for Home Assistant - Monitor and manage Bambu Lab A1 and Prusa Core One printers with real-time status, temperature monitoring, and MQTT discovery integration."
+}
