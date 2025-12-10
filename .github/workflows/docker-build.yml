@@ -11,7 +11,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: schmacka/printernizer-ha
+  IMAGE_NAME: ${{ github.repository_owner }}/printernizer-ha
 
 jobs:
   build:
