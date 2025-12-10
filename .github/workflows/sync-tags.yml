@@ -1,0 +1,88 @@
+name: Sync Tags from Printernizer
+
+on:
+  schedule:
+    # Run daily at 6 AM UTC to check for new printernizer releases
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+
+jobs:
+  sync-tags:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    
+    steps:
+      - name: Checkout printernizer-ha
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Get printernizer tags
+        id: get-tags
+        run: |
+          # Fetch tags from printernizer repository
+          PRINTERNIZER_TAGS=$(gh api repos/schmacka/printernizer/tags --jq '.[].name' | head -20)
+          echo "printernizer_tags<<EOF" >> $GITHUB_OUTPUT
+          echo "$PRINTERNIZER_TAGS" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: Get existing tags in printernizer-ha
+        id: existing-tags
+        run: |
+          EXISTING_TAGS=$(git tag)
+          echo "existing_tags<<EOF" >> $GITHUB_OUTPUT
+          echo "$EXISTING_TAGS" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Create missing tags
+        run: |
+          echo "Checking for missing tags..."
+          
+          NEW_TAGS_CREATED=0
+          
+          while IFS= read -r tag; do
+            if ! echo "$EXISTING_TAGS" | grep -q "^${tag}$"; then
+              echo "Creating tag: $tag"
+              git tag -a "$tag" -m "Sync with printernizer $tag"
+              NEW_TAGS_CREATED=$((NEW_TAGS_CREATED + 1))
+            else
+              echo "Tag already exists: $tag"
+            fi
+          done <<< "$PRINTERNIZER_TAGS"
+          
+          echo "new_tags_created=$NEW_TAGS_CREATED" >> $GITHUB_OUTPUT
+        env:
+          PRINTERNIZER_TAGS: ${{ steps.get-tags.outputs.printernizer_tags }}
+          EXISTING_TAGS: ${{ steps.existing-tags.outputs.existing_tags }}
+        id: create-tags
+
+      - name: Push new tags
+        if: steps.create-tags.outputs.new_tags_created > 0
+        run: |
+          echo "Pushing new tags to remote..."
+          git push origin --tags
+          echo "✅ Successfully synced ${{ steps.create-tags.outputs.new_tags_created }} new tags"
+
+      - name: No new tags
+        if: steps.create-tags.outputs.new_tags_created == 0
+        run: |
+          echo "ℹ️ All tags are already synced. No action needed."
+
+      - name: Trigger Docker build for latest tag
+        if: steps.create-tags.outputs.new_tags_created > 0
+        run: |
+          # Get the latest tag
+          LATEST_TAG=$(gh api repos/schmacka/printernizer/tags --jq '.[0].name')
+          
+          # Check if we just created this tag
+          if git tag -l "$LATEST_TAG" | grep -q "$LATEST_TAG"; then
+            echo "New release detected: $LATEST_TAG"
+            echo "Triggering Docker build workflow..."
+            gh workflow run docker-build.yml
+          fi
+        env:
+          GH_TOKEN: ${{ github.token }}
