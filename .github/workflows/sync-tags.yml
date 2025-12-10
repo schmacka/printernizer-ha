@@ -38,6 +38,11 @@ jobs:
           echo "$EXISTING_TAGS" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
+      - name: Configure Git
+        run: |
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "github-actions[bot]"
+
       - name: Create missing tags
         run: |
           echo "Checking for missing tags..."
