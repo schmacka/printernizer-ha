@@ -1,0 +1,73 @@
+name: Create Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: write
+
+jobs:
+  create-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get tag version
+        id: get_version
+        run: |
+          TAG=${GITHUB_REF#refs/tags/}
+          VERSION=${TAG#v}
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Extract release notes from CHANGELOG
+        id: release_notes
+        run: |
+          # Extract release notes for the version from CHANGELOG.md
+          VERSION="${{ steps.get_version.outputs.version }}"
+          
+          if [ ! -f "printernizer/CHANGELOG.md" ]; then
+            echo "CHANGELOG.md not found"
+            echo "notes=Release ${{ steps.get_version.outputs.tag }}" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          
+          # Extract the section for this version
+          NOTES=$(awk "/## \[$VERSION\]/{flag=1; next} /## \[/{flag=0} flag" printernizer/CHANGELOG.md | sed '/^$/d')
+          
+          if [ -z "$NOTES" ]; then
+            echo "No release notes found for version $VERSION in CHANGELOG.md"
+            echo "notes=Release ${{ steps.get_version.outputs.tag }}" >> $GITHUB_OUTPUT
+          else
+            # Escape multiline content for GitHub output
+            {
+              echo "notes<<EOF"
+              echo "$NOTES"
+              echo "EOF"
+            } >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ steps.get_version.outputs.tag }}
+          name: Release ${{ steps.get_version.outputs.tag }}
+          body: ${{ steps.release_notes.outputs.notes }}
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Release summary
+        run: |
+          echo "### ✅ Release Created Successfully" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Tag:** ${{ steps.get_version.outputs.tag }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Version:** ${{ steps.get_version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Release URL:** ${{ github.server_url }}/${{ github.repository }}/releases/tag/${{ steps.get_version.outputs.tag }}" >> $GITHUB_STEP_SUMMARY
