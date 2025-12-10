@@ -30,9 +30,12 @@ RUN apk add --no-cache \
 RUN apk add --no-cache --virtual .build-deps \
     gcc \
     g++ \
+    gfortran \
     musl-dev \
     python3-dev \
     libffi-dev \
+    openblas-dev \
+    lapack-dev \
     && rm -rf /var/cache/apk/*
 
 # Set working directory
