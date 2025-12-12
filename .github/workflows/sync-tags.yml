@@ -82,7 +82,7 @@ jobs:
         run: |
           # Get the latest tag
           LATEST_TAG=$(gh api repos/schmacka/printernizer/tags --jq '.[0].name')
-          
+
           # Check if we just created this tag
           if git tag -l "$LATEST_TAG" | grep -q "$LATEST_TAG"; then
             echo "New release detected: $LATEST_TAG"
@@ -91,3 +91,18 @@ jobs:
           fi
         env:
           GH_TOKEN: ${{ github.token }}
+
+      - name: Trigger homeassistant-addons sync
+        if: steps.create-tags.outputs.new_tags_created > 0
+        run: |
+          # Get the latest tag for the payload
+          LATEST_TAG=$(gh api repos/schmacka/printernizer/tags --jq '.[0].name')
+          VERSION=${LATEST_TAG#v}
+
+          gh api repos/schmacka/homeassistant-addons/dispatches \
+            -f event_type=sync-request \
+            -f "client_payload[source]=printernizer-ha" \
+            -f "client_payload[version]=$VERSION"
+          echo "✅ Triggered sync in homeassistant-addons repository"
+        env:
+          GH_TOKEN: ${{ secrets.ADDONS_SYNC_TOKEN }}

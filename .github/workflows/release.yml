@@ -71,3 +71,14 @@ jobs:
           echo "**Version:** ${{ steps.get_version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Release URL:** ${{ github.server_url }}/${{ github.repository }}/releases/tag/${{ steps.get_version.outputs.tag }}" >> $GITHUB_STEP_SUMMARY
+
+      - name: Trigger homeassistant-addons sync
+        if: success()
+        run: |
+          gh api repos/schmacka/homeassistant-addons/dispatches \
+            -f event_type=sync-request \
+            -f 'client_payload[source]=printernizer-ha' \
+            -f 'client_payload[version]=${{ steps.get_version.outputs.version }}'
+          echo "✅ Triggered sync in homeassistant-addons repository"
+        env:
+          GH_TOKEN: ${{ secrets.ADDONS_SYNC_TOKEN }}
