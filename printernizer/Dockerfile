@@ -1,7 +1,37 @@
 # Printernizer - Home Assistant Add-on
-# Multi-architecture support for Home Assistant ecosystem
+# Multi-architecture support with optimized multi-stage build
 
+# ============================================
+# Stage 1: Builder - Compile dependencies
+# ============================================
 ARG BUILD_FROM
+FROM ${BUILD_FROM} as builder
+
+# Set shell
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
+# Install build dependencies with --no-scripts to avoid QEMU overhead
+RUN apk add --no-cache --no-scripts \
+    gcc \
+    g++ \
+    gfortran \
+    musl-dev \
+    python3-dev \
+    libffi-dev \
+    openblas-dev \
+    lapack-dev \
+    py3-pip \
+    && rm -rf /var/cache/apk/*
+
+# Copy requirements first for better layer caching
+COPY requirements.txt /tmp/
+
+# Install Python packages in user directory
+RUN pip3 install --no-cache-dir --user --break-system-packages -r /tmp/requirements.txt
+
+# ============================================
+# Stage 2: Runtime - Lean production image
+# ============================================
 FROM ${BUILD_FROM}
 
 # Set shell
@@ -12,9 +42,10 @@ ENV LANG=C.UTF-8 \
     PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     DEPLOYMENT_MODE=homeassistant \
-    HA_INGRESS=true
+    HA_INGRESS=true \
+    PATH=/root/.local/bin:$PATH
 
-# Install base dependencies
+# Install ONLY runtime dependencies (no build tools)
 RUN apk add --no-cache \
     python3 \
     py3-pip \
@@ -26,29 +57,11 @@ RUN apk add --no-cache \
     tzdata \
     && rm -rf /var/cache/apk/*
 
-# Install build dependencies temporarily
-RUN apk add --no-cache --virtual .build-deps \
-    gcc \
-    g++ \
-    gfortran \
-    musl-dev \
-    python3-dev \
-    libffi-dev \
-    openblas-dev \
-    lapack-dev \
-    && rm -rf /var/cache/apk/*
+# Copy compiled Python packages from builder stage
+COPY --from=builder /root/.local /root/.local
 
 # Set working directory
 WORKDIR /app
-
-# Copy requirements
-COPY requirements.txt /app/
-
-# Install Python dependencies
-RUN pip3 install --no-cache-dir --break-system-packages -r requirements.txt
-
-# Remove build dependencies to reduce image size
-RUN apk del .build-deps
 
 # Copy application files
 COPY src/ /app/src/
@@ -75,7 +88,7 @@ EXPOSE 8000
 LABEL io.hass.name="Printernizer" \
       io.hass.description="Professional 3D Printer Management System" \
       io.hass.type="addon" \
-      io.hass.version="2.0.13" \
+      io.hass.version="2.9.5" \
       io.hass.arch="aarch64|amd64|armv7|armhf"
 
 # Start the add-on service
