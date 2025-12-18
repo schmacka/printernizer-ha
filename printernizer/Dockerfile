@@ -11,7 +11,7 @@ FROM ${BUILD_FROM} as builder
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 # Install build dependencies
-RUN apk add --no-cache \
+RUN apk update && apk add --no-cache \
     gcc \
     g++ \
     gfortran \
@@ -49,7 +49,7 @@ ENV LANG=C.UTF-8 \
     PATH=/root/.local/bin:$PATH
 
 # Install runtime dependencies (no build tools)
-RUN apk add --no-cache \
+RUN apk update && apk add --no-cache \
     python3 \
     py3-pip \
     py3-brotli \
