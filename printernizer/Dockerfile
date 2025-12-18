@@ -10,24 +10,31 @@ FROM ${BUILD_FROM} as builder
 # Set shell
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
-# Install build dependencies with --no-scripts to avoid QEMU overhead
-RUN apk add --no-cache --no-scripts \
+# Install build dependencies and pre-built scientific packages from Alpine
+# This significantly speeds up ARM builds by avoiding scipy/numpy compilation
+RUN apk add --no-cache \
     gcc \
     g++ \
-    gfortran \
     musl-dev \
     python3-dev \
     libffi-dev \
-    openblas-dev \
-    lapack-dev \
     py3-pip \
+    py3-numpy \
+    py3-scipy \
+    py3-matplotlib \
+    py3-pillow \
     && rm -rf /var/cache/apk/*
 
 # Copy requirements first for better layer caching
 COPY requirements.txt /tmp/
 
-# Install Python packages in user directory
-RUN pip3 install --no-cache-dir --user --break-system-packages -r /tmp/requirements.txt
+# Create a filtered requirements file excluding packages installed via apk
+RUN grep -vE '^(scipy|matplotlib|Pillow)' /tmp/requirements.txt > /tmp/requirements-filtered.txt || true
+
+# Install remaining Python packages in user directory
+RUN pip3 install --no-cache-dir --user --break-system-packages \
+    --prefer-binary \
+    -r /tmp/requirements-filtered.txt
 
 # ============================================
 # Stage 2: Runtime - Lean production image
@@ -45,11 +52,15 @@ ENV LANG=C.UTF-8 \
     HA_INGRESS=true \
     PATH=/root/.local/bin:$PATH
 
-# Install ONLY runtime dependencies (no build tools)
+# Install runtime dependencies including pre-built scientific packages
 RUN apk add --no-cache \
     python3 \
     py3-pip \
     py3-brotli \
+    py3-numpy \
+    py3-scipy \
+    py3-matplotlib \
+    py3-pillow \
     sqlite \
     curl \
     jq \
