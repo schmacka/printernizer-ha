@@ -10,8 +10,8 @@ FROM ${BUILD_FROM} as builder
 # Set shell
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
-# Install build dependencies with --no-scripts to avoid QEMU overhead
-RUN apk add --no-cache --no-scripts \
+# Install build dependencies
+RUN apk update && apk add --no-cache \
     gcc \
     g++ \
     gfortran \
@@ -26,8 +26,11 @@ RUN apk add --no-cache --no-scripts \
 # Copy requirements first for better layer caching
 COPY requirements.txt /tmp/
 
-# Install Python packages in user directory
-RUN pip3 install --no-cache-dir --user --break-system-packages -r /tmp/requirements.txt
+# Install Python packages in user directory with --prefer-binary to use wheels when available
+# Use extra index for prebuilt ARM wheels to speed up builds
+RUN pip3 install --no-cache-dir --user --break-system-packages --prefer-binary \
+    --extra-index-url https://www.piwheels.org/simple \
+    -r /tmp/requirements.txt
 
 # ============================================
 # Stage 2: Runtime - Lean production image
@@ -45,8 +48,8 @@ ENV LANG=C.UTF-8 \
     HA_INGRESS=true \
     PATH=/root/.local/bin:$PATH
 
-# Install ONLY runtime dependencies (no build tools)
-RUN apk add --no-cache \
+# Install runtime dependencies (no build tools)
+RUN apk update && apk add --no-cache \
     python3 \
     py3-pip \
     py3-brotli \
@@ -55,6 +58,10 @@ RUN apk add --no-cache \
     jq \
     bash \
     tzdata \
+    openblas \
+    lapack \
+    libgfortran \
+    libstdc++ \
     && rm -rf /var/cache/apk/*
 
 # Copy compiled Python packages from builder stage
