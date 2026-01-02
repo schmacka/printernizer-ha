@@ -23,8 +23,7 @@ RUN apk update && \
             gcc g++ gfortran musl-dev python3-dev libffi-dev \
             py3-pip py3-setuptools py3-wheel \
             py3-numpy py3-scipy py3-matplotlib py3-pillow \
-            py3-cryptography py3-aiohttp py3-requests \
-            py3-websockets py3-brotli py3-beautifulsoup4 \
+            py3-cryptography \
             openblas-dev lapack-dev && \
         rm -rf /var/cache/apk/*; \
     else \
@@ -89,8 +88,7 @@ RUN apk update && \
         apk add --no-cache \
             python3 py3-pip py3-brotli py3-setuptools py3-wheel \
             py3-numpy py3-scipy py3-matplotlib py3-pillow \
-            py3-cryptography py3-aiohttp py3-requests \
-            py3-websockets py3-beautifulsoup4 \
+            py3-cryptography \
             sqlite curl jq bash tzdata \
             openblas lapack libgfortran libstdc++ && \
         rm -rf /var/cache/apk/*; \
