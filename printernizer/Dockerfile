@@ -26,9 +26,18 @@ RUN apk update && apk add --no-cache \
 # Copy requirements first for better layer caching
 COPY requirements.txt /tmp/
 
-# Install Python packages in user directory with --prefer-binary to use wheels when available
-# Use extra index for prebuilt ARM wheels to speed up builds
-RUN pip3 install --no-cache-dir --user --break-system-packages --prefer-binary \
+# Install Python packages with aggressive wheel preference for ARM
+# First try with --only-binary to force wheels (faster)
+# If that fails (missing wheels), retry without it to allow compilation
+RUN pip3 install --no-cache-dir --user --break-system-packages \
+    --prefer-binary \
+    --only-binary=:all: \
+    --extra-index-url https://www.piwheels.org/simple \
+    --trusted-host www.piwheels.org \
+    --default-timeout=300 \
+    -r /tmp/requirements.txt || \
+    pip3 install --no-cache-dir --user --break-system-packages \
+    --prefer-binary \
     --extra-index-url https://www.piwheels.org/simple \
     -r /tmp/requirements.txt
 
@@ -96,7 +105,7 @@ LABEL io.hass.name="Printernizer" \
       io.hass.description="Professional 3D Printer Management System" \
       io.hass.type="addon" \
       io.hass.version="2.9.5" \
-      io.hass.arch="aarch64|amd64|armv7|armhf"
+      io.hass.arch="aarch64|amd64|armv7"
 
 # Start the add-on service
 CMD ["/run.sh"]
