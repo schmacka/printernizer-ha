@@ -37,13 +37,14 @@ RUN apk update && \
 COPY requirements.txt /tmp/
 
 # Install Python packages with aggressive wheel preference for ARM
-# For armv7: Use only pre-built wheels to avoid Rust compilation issues
+# For armv7: Use ONLY pre-built wheels to avoid Rust compilation issues
 # Alpine packages installed above will satisfy some requirements (numpy, scipy, etc.)
 # We MUST avoid compiling packages with Rust dependencies as rustup doesn't support arm-unknown-linux-musleabihf
+# Note: pip will skip packages already satisfied by Alpine system packages
 RUN if [ "$(uname -m)" = "armv7l" ]; then \
         echo "Installing packages for armv7 - using piwheels as primary source..." && \
         pip3 install --no-cache-dir --user --break-system-packages \
-            --prefer-binary \
+            --only-binary=:all: \
             --index-url https://www.piwheels.org/simple \
             --extra-index-url https://pypi.org/simple \
             --trusted-host www.piwheels.org \
