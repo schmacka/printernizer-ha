@@ -11,7 +11,8 @@ FROM ${BUILD_FROM} as builder
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 # Detect architecture for conditional package installation
-RUN arch=$(uname -m) && echo "Building for architecture: $arch"
+RUN arch=$(uname -m) && echo "Building for architecture: $arch" && \
+    echo "Platform: $(uname -a)"
 
 # Install build dependencies and architecture-specific packages
 # For armv7, use Alpine system packages where available to avoid Rust compilation
