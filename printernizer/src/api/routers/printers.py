@@ -382,11 +382,15 @@ async def test_printer_connection(
             test_request.printer_type,
             test_request.connection_config
         )
-        return success_response({
+        response_data = {
             "success": result.get("success", False),
             "message": result.get("message", "Connection test completed"),
             "details": result.get("details", {})
-        })
+        }
+        # Include response_time_ms if provided by the service
+        if "response_time_ms" in result:
+            response_data["response_time_ms"] = result["response_time_ms"]
+        return success_response(response_data)
     except Exception as e:
         logger.error("Connection test failed", error=str(e))
         return success_response({
@@ -522,16 +526,16 @@ async def get_printer_status(
                 "remaining_time": status.remaining_time_minutes
             }
 
-        # Get temperatures
-        if status.bed_temperature is not None or status.nozzle_temperature is not None:
+        # Get temperatures (model uses temperature_bed/temperature_nozzle)
+        if status.temperature_bed is not None or status.temperature_nozzle is not None:
             response["temperatures"] = {
                 "bed": {
-                    "current": status.bed_temperature,
-                    "target": status.bed_target_temperature
+                    "current": status.temperature_bed,
+                    "target": getattr(status, 'bed_target_temperature', None)
                 },
                 "nozzle": {
-                    "current": status.nozzle_temperature,
-                    "target": status.nozzle_target_temperature
+                    "current": status.temperature_nozzle,
+                    "target": getattr(status, 'nozzle_target_temperature', None)
                 }
             }
 
