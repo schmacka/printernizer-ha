@@ -89,13 +89,13 @@ RUN apk update && \
             python3 py3-pip py3-brotli py3-setuptools py3-wheel \
             py3-numpy py3-scipy py3-matplotlib py3-pillow \
             py3-cryptography \
-            sqlite curl jq bash tzdata \
+            sqlite curl jq bash tzdata ffmpeg \
             openblas lapack libgfortran libstdc++ && \
         rm -rf /var/cache/apk/*; \
     else \
         apk add --no-cache \
             python3 py3-pip py3-brotli \
-            sqlite curl jq bash tzdata \
+            sqlite curl jq bash tzdata ffmpeg \
             openblas lapack libgfortran libstdc++ && \
         rm -rf /var/cache/apk/*; \
     fi
