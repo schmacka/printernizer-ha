@@ -79,7 +79,7 @@ python-multipart==0.0.21
 # cryptography>=42.0.0  # Temporarily disabled for Python 3.13 compatibility
 
 # URL Parsing and Web Content Extraction (for Ideas feature)
-beautifulsoup4==4.12.2
+beautifulsoup4==4.14.3
 
 # Image Processing for Thumbnails (Ideas feature)
 Pillow>=10.0.0
