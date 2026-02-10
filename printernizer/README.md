@@ -89,4 +89,6 @@ For issues, feature requests, or contributions:
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+**Free for private use.** Commercial/professional use requires a license.
+
+See the [main repository](https://github.com/schmacka/printernizer#-license) for full licensing details.

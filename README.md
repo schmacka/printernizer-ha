@@ -3,7 +3,7 @@
 [![GitHub Release](https://img.shields.io/github/release/schmacka/printernizer-ha.svg)](https://github.com/schmacka/printernizer-ha/releases)
 [![License](https://img.shields.io/github/license/schmacka/printernizer-ha.svg)](https://github.com/schmacka/printernizer-ha/blob/master/LICENSE)
 
-Professional 3D Printer Management for Home Assistant - Bambu Lab A1 and Prusa Core One support.
+Powerful 3D Printer Management for Home Assistant - Bambu Lab A1 and Prusa Core One support.
 
 ## ⚠️ Auto-Synced Repository
 
@@ -19,7 +19,7 @@ This repository is **automatically synchronized** from the main [printernizer](h
 
 ## About
 
-Printernizer is a professional 3D print management system designed for managing Bambu Lab A1 and Prusa Core One printers. It provides automated job tracking, file downloads, and business reporting capabilities for 3D printing operations.
+Printernizer is a powerful 3D print management system designed for managing Bambu Lab A1 and Prusa Core One printers. It provides automated job tracking, file downloads, and business reporting capabilities for 3D printing operations.
 
 ### Features
 
@@ -89,4 +89,6 @@ For issues, feature requests, or contributions:
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+**Free for private use.** Commercial/professional use requires a license.
+
+See the [main repository](https://github.com/schmacka/printernizer#-license) for full licensing details.
