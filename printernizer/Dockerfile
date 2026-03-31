@@ -110,6 +110,7 @@ WORKDIR /app
 COPY src/ /app/src/
 COPY frontend/ /app/frontend/
 COPY database_schema.sql /app/
+COPY migrations/ /app/migrations/
 
 # Copy Home Assistant specific files
 COPY run.sh /
