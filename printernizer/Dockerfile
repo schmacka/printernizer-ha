@@ -95,6 +95,7 @@ RUN apk update && \
     else \
         apk add --no-cache \
             python3 py3-pip py3-brotli \
+            py3-matplotlib ttf-dejavu \
             sqlite curl jq bash tzdata ffmpeg \
             openblas lapack libgfortran libstdc++ && \
         rm -rf /var/cache/apk/*; \
