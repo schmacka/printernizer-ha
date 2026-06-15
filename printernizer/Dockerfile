@@ -1,5 +1,5 @@
 # Printernizer - Home Assistant Add-on
-# Multi-architecture support with optimized multi-stage build
+# Debian (glibc) base for openscad + matplotlib support on all arches (amd64, aarch64, armv7)
 
 # ============================================
 # Stage 1: Builder - Compile dependencies
@@ -7,72 +7,48 @@
 ARG BUILD_FROM
 FROM ${BUILD_FROM} as builder
 
-# Set shell
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
-# Detect architecture for conditional package installation
-RUN arch=$(uname -m) && echo "Building for architecture: $arch" && \
-    echo "Platform: $(uname -a)"
+RUN echo "Building for architecture: $(uname -m)" && echo "Platform: $(uname -a)"
 
-# Install build dependencies and architecture-specific packages
-# For armv7, use Alpine system packages where available to avoid Rust compilation
-RUN apk update && \
-    if [ "$(uname -m)" = "armv7l" ]; then \
-        echo "Installing armv7-specific Alpine packages to avoid Rust compilation..." && \
-        apk add --no-cache \
-            gcc g++ gfortran musl-dev python3-dev libffi-dev \
-            py3-pip py3-setuptools py3-wheel \
-            py3-numpy py3-scipy py3-matplotlib py3-pillow \
-            py3-cryptography \
-            openblas-dev lapack-dev && \
-        rm -rf /var/cache/apk/*; \
-    else \
-        apk add --no-cache \
-            gcc g++ gfortran musl-dev python3-dev libffi-dev \
-            openblas-dev lapack-dev py3-pip && \
-        rm -rf /var/cache/apk/*; \
-    fi
+# Install build dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        python3-pip \
+        python3-dev \
+        gcc \
+        g++ \
+        gfortran \
+        libopenblas-dev \
+        liblapack-dev \
+        libffi-dev \
+    && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements first for better layer caching
 COPY requirements.txt /tmp/
 
-# Install Python packages with aggressive wheel preference for ARM
-# For armv7: Use ONLY pre-built wheels to avoid Rust compilation issues
-# Alpine packages installed above will satisfy some requirements (numpy, scipy, etc.)
-# We MUST avoid compiling packages with Rust dependencies as rustup doesn't support arm-unknown-linux-musleabihf
-# Note: pip will skip packages already satisfied by Alpine system packages
-RUN if [ "$(uname -m)" = "armv7l" ]; then \
-        echo "Installing packages for armv7 - using piwheels as primary source..." && \
-        pip3 install --no-cache-dir --user --break-system-packages \
-            --only-binary=:all: \
-            --index-url https://www.piwheels.org/simple \
-            --extra-index-url https://pypi.org/simple \
-            --trusted-host www.piwheels.org \
-            --default-timeout=300 \
-            -r /tmp/requirements.txt; \
-    else \
-        pip3 install --no-cache-dir --user --break-system-packages \
-            --prefer-binary \
-            --only-binary=:all: \
-            --extra-index-url https://www.piwheels.org/simple \
-            --trusted-host www.piwheels.org \
-            --default-timeout=300 \
-            -r /tmp/requirements.txt || \
-        pip3 install --no-cache-dir --user --break-system-packages \
-            --prefer-binary \
-            --extra-index-url https://www.piwheels.org/simple \
-            -r /tmp/requirements.txt; \
-    fi
+# Install Python packages from requirements.txt.
+# Prefer pre-built binary wheels; fall back to source only if needed.
+# piwheels provides ARM wheels (arm64/armhf) for packages without official ones.
+# matplotlib is NOT in requirements.txt (excluded upstream for musl/aarch64 compat)
+# but works on Debian/glibc, so install it here for STL/3MF preview rendering.
+RUN pip3 install --no-cache-dir --user --break-system-packages \
+        --prefer-binary \
+        --extra-index-url https://www.piwheels.org/simple \
+        --trusted-host www.piwheels.org \
+        --default-timeout=300 \
+        -r /tmp/requirements.txt && \
+    pip3 install --no-cache-dir --user --break-system-packages \
+        --prefer-binary \
+        --default-timeout=300 \
+        matplotlib
 
 # ============================================
 # Stage 2: Runtime - Lean production image
 # ============================================
 FROM ${BUILD_FROM}
 
-# Set shell
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
-# Set environment variables
 ENV LANG=C.UTF-8 \
     PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
@@ -80,26 +56,24 @@ ENV LANG=C.UTF-8 \
     HA_INGRESS=true \
     PATH=/root/.local/bin:$PATH
 
-# Install runtime dependencies (no build tools)
-# For armv7, include Alpine packages to avoid runtime issues
-RUN apk update && \
-    if [ "$(uname -m)" = "armv7l" ]; then \
-        echo "Installing armv7-specific runtime packages..." && \
-        apk add --no-cache \
-            python3 py3-pip py3-brotli py3-setuptools py3-wheel \
-            py3-numpy py3-scipy py3-matplotlib py3-pillow \
-            py3-cryptography \
-            sqlite curl jq bash tzdata ffmpeg \
-            openblas lapack libgfortran libstdc++ && \
-        rm -rf /var/cache/apk/*; \
-    else \
-        apk add --no-cache \
-            python3 py3-pip py3-brotli \
-            py3-matplotlib ttf-dejavu \
-            sqlite curl jq bash tzdata ffmpeg \
-            openblas lapack libgfortran libstdc++ && \
-        rm -rf /var/cache/apk/*; \
-    fi
+# Install runtime dependencies.
+# openscad is available in Debian repos for amd64, arm64, and armhf (all supported arches).
+# xvfb provides xvfb-run for headless OpenSCAD PNG rendering.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        python3 \
+        openscad \
+        xvfb \
+        sqlite3 \
+        curl \
+        jq \
+        tzdata \
+        ffmpeg \
+        fonts-dejavu-core \
+        ca-certificates \
+        libopenblas0 \
+        libgfortran5 \
+        libstdc++6 \
+    && rm -rf /var/lib/apt/lists/*
 
 # Copy compiled Python packages from builder stage
 COPY --from=builder /root/.local /root/.local

@@ -90,7 +90,8 @@ backup_exclude:
   - "*.tmp"
 
 # Supported architectures with base images
+# Debian base for openscad/matplotlib support on all arches (see build.yaml)
 build_from:
-  aarch64: ghcr.io/home-assistant/aarch64-base:latest
-  amd64: ghcr.io/home-assistant/amd64-base:latest
-  armv7: ghcr.io/home-assistant/armv7-base:latest
+  aarch64: ghcr.io/home-assistant/aarch64-base-debian:latest
+  amd64: ghcr.io/home-assistant/amd64-base-debian:latest
+  armv7: ghcr.io/home-assistant/armv7-base-debian:latest
