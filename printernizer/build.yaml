@@ -1,10 +1,11 @@
 # Printernizer - Multi-Architecture Build Configuration
-# For Home Assistant Add-on builds across different platforms
+# Debian (glibc) base images: openscad packages exist for amd64, arm64, armhf
+# so the Generator feature and matplotlib STL previews work on all arches.
 
 build_from:
-  aarch64: ghcr.io/home-assistant/aarch64-base:latest
-  amd64: ghcr.io/home-assistant/amd64-base:latest
-  armv7: ghcr.io/home-assistant/armv7-base:latest
+  aarch64: ghcr.io/home-assistant/aarch64-base-debian:latest
+  amd64: ghcr.io/home-assistant/amd64-base-debian:latest
+  armv7: ghcr.io/home-assistant/armv7-base-debian:latest
 
 args:
   PRINTERNIZER_VERSION: "2.0.7"
