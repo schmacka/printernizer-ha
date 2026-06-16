@@ -72,6 +72,6 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
-            BUILD_FROM=ghcr.io/home-assistant/${{ matrix.arch }}-base:latest
+            BUILD_FROM=ghcr.io/home-assistant/${{ matrix.arch }}-base-debian:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
