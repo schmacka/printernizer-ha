@@ -1,5 +1,9 @@
 # Printernizer - Home Assistant Add-on
-# Debian (glibc) base for openscad + matplotlib support on all arches (amd64, aarch64, armv7)
+# Debian (glibc) base. Required by the build123d model generator: it depends on
+# OpenCascade via the OCP bindings, which ship manylinux (glibc) wheels only
+# (no musllinux build), so an Alpine base is not an option. matplotlib STL/3MF
+# previews also work here (no musl/aarch64 wheel constraint). All on amd64,
+# aarch64 and armv7.
 
 # ============================================
 # Stage 1: Builder - Compile dependencies
@@ -29,8 +33,9 @@ COPY requirements.txt /tmp/
 # Install Python packages from requirements.txt.
 # Prefer pre-built binary wheels; fall back to source only if needed.
 # piwheels provides ARM wheels (arm64/armhf) for packages without official ones.
-# matplotlib is NOT in requirements.txt (excluded upstream for musl/aarch64 compat)
-# but works on Debian/glibc, so install it here for STL/3MF preview rendering.
+# matplotlib and build123d are NOT in requirements.txt (excluded upstream for
+# musl/armv7 wheel compatibility) but work on Debian/glibc, so they are installed
+# here as optional extras.
 RUN pip3 install --no-cache-dir --user --break-system-packages \
         --prefer-binary \
         --extra-index-url https://www.piwheels.org/simple \
@@ -41,6 +46,16 @@ RUN pip3 install --no-cache-dir --user --break-system-packages \
         --prefer-binary \
         --default-timeout=300 \
         matplotlib
+
+# Optional: build123d (parametric model generator). cadquery-ocp ships glibc
+# wheels for x86_64/aarch64 only — there is no 32-bit armv7 wheel — so this is
+# best-effort: on armv7 it is skipped and the generator reports itself
+# unavailable (graceful degradation), keeping the armv7 image building.
+RUN pip3 install --no-cache-dir --user --break-system-packages \
+        --prefer-binary \
+        --default-timeout=300 \
+        "build123d>=0.9.1" \
+    || echo "build123d not installable on this architecture; model generator disabled"
 
 # ============================================
 # Stage 2: Runtime - Lean production image
@@ -57,12 +72,11 @@ ENV LANG=C.UTF-8 \
     PATH=/root/.local/bin:$PATH
 
 # Install runtime dependencies.
-# openscad is available in Debian repos for amd64, arm64, and armhf (all supported arches).
-# xvfb provides xvfb-run for headless OpenSCAD PNG rendering.
+# libgl1/libglu1-mesa/libxrender1/libxext6/libsm6/libgomp1/fontconfig are
+# required by OpenCascade/OCP (the build123d model generator). No external
+# CAD binary is needed — build123d renders geometry in-process.
 RUN apt-get update && apt-get install -y --no-install-recommends \
         python3 \
-        openscad \
-        xvfb \
         sqlite3 \
         curl \
         jq \
@@ -73,6 +87,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         libopenblas0 \
         libgfortran5 \
         libstdc++6 \
+        libgl1 \
+        libglu1-mesa \
+        libxrender1 \
+        libxext6 \
+        libsm6 \
+        libgomp1 \
+        fontconfig \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy compiled Python packages from builder stage
