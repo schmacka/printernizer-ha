@@ -55,15 +55,33 @@ RUN pip3 install --no-cache-dir --user --break-system-packages \
         matplotlib \
     || echo "matplotlib not installable on this architecture; STL preview rendering disabled"
 
-# Optional: build123d (parametric model generator). cadquery-ocp ships glibc
-# wheels for x86_64/aarch64 only — there is no 32-bit armv7 wheel — so this is
-# best-effort: on armv7 it is skipped and the generator reports itself
-# unavailable (graceful degradation), keeping the armv7 image building.
-RUN pip3 install --no-cache-dir --user --break-system-packages \
-        --prefer-binary \
-        --default-timeout=300 \
-        "build123d>=0.9.1" \
-    || echo "build123d not installable on this architecture; model generator disabled"
+# Optional: build123d (parametric model generator). cadquery-ocp wheel coverage
+# is split by architecture, so the install differs per arch (all best-effort —
+# the generator degrades gracefully when build123d is absent):
+#   x86_64  : build123d 0.10.0 + its pinned cadquery-ocp 7.8.x (proven path).
+#   aarch64 : 7.8.x has NO linux-arm64 wheel; the only arm64 OCP wheel is
+#             cadquery-ocp 7.9.3.x, which build123d 0.10.0 pins out. So we mix
+#             versions: build123d (--no-deps) on top of the OCP 7.9 world
+#             (cadquery-ocp 7.9.3 + ocpsvg 0.6 + ocp_gordon 0.2). EXPERIMENTAL.
+#   armv7   : no OCP wheel at all → skipped.
+RUN ARCH="$(uname -m)"; \
+    if [ "$ARCH" = "x86_64" ]; then \
+        pip3 install --no-cache-dir --user --break-system-packages \
+            --prefer-binary --default-timeout=300 "build123d>=0.9.1" \
+        || echo "build123d not installable; model generator disabled"; \
+    elif [ "$ARCH" = "aarch64" ]; then \
+        echo "aarch64: installing build123d with cadquery-ocp 7.9.3 (experimental)"; \
+        pip3 install --no-cache-dir --user --break-system-packages \
+            --prefer-binary --default-timeout=300 \
+            "cadquery-ocp==7.9.3.1.1" "ocpsvg>=0.6" "ocp_gordon>=0.2" \
+            typing_extensions svgpathtools anytree ezdxf ipython "lib3mf>=2.4.1" \
+            trianglesolver sympy webcolors \
+        && pip3 install --no-cache-dir --user --break-system-packages \
+            --no-deps "build123d==0.10.0" \
+        || echo "build123d (arm64 OCP 7.9 override) failed; model generator disabled"; \
+    else \
+        echo "$ARCH: no cadquery-ocp wheel; model generator disabled"; \
+    fi
 
 # ============================================
 # Stage 2: Runtime - Lean production image
