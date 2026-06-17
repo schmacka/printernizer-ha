@@ -16,7 +16,7 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 120  # Increased for ARM v7 builds
+    timeout-minutes: 120  # Increased for ARM v7 builds (QEMU)
     permissions:
       contents: read
       packages: write
@@ -28,13 +28,21 @@ jobs:
             platform: linux/amd64
           - arch: aarch64
             platform: linux/arm64
-          # armv7 disabled - piwheels incompatible with Alpine Linux (musl vs glibc)
-          # TODO: Fix by using Alpine system packages or allowing source compilation
-          # - arch: armv7
-          #   platform: linux/arm/v7
+          # armv7 (32-bit) builds the core app. build123d/OCP has no armv7 wheel,
+          # so the Dockerfile installs it best-effort and the model generator is
+          # simply disabled on armv7 (the rest of the add-on works normally).
+          - arch: armv7
+            platform: linux/arm/v7
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+
+      - name: Read add-on version
+        id: ver
+        run: |
+          VERSION=$(grep -E '^version:' printernizer/config.yaml | sed -E 's/.*"([^"]+)".*/\1/')
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Add-on version: $VERSION"
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -49,18 +57,18 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      # Per-arch image name (printernizer-ha-<arch>) so Home Assistant's
+      # `image: ghcr.io/schmacka/printernizer-ha-{arch}` resolves correctly.
       - name: Extract Docker metadata
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-          flavor: |
-            suffix=-${{ matrix.arch }},onlatest=true
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-${{ matrix.arch }}
           tags: |
             type=raw,value=latest,enable={{is_default_branch}}
+            type=raw,value=${{ steps.ver.outputs.version }}
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
-            type=semver,pattern={{major}}
             type=sha,prefix=sha-,format=short
 
       - name: Build and push

@@ -61,8 +61,10 @@ schema:
   job_creation_auto_create: bool?
 
 # Image configuration
-#image: ghcr.io/schmacka/printernizer-{arch}
-# Note: No pre-built image - HA will build locally from Dockerfile
+# Pull the pre-built, CI-published per-arch images instead of building locally.
+# Built and pushed by .github/workflows/docker-build.yml; {arch} is substituted
+# by Home Assistant (amd64 / aarch64 / armv7).
+image: ghcr.io/schmacka/printernizer-ha-{arch}
 
 
 # Advanced options
@@ -90,7 +92,7 @@ backup_exclude:
   - "*.tmp"
 
 # Supported architectures with base images
-# Debian base for openscad/matplotlib support on all arches (see build.yaml)
+# Debian (glibc) base required by build123d/OCP + matplotlib (see build.yaml)
 build_from:
   aarch64: ghcr.io/home-assistant/aarch64-base-debian:latest
   amd64: ghcr.io/home-assistant/amd64-base-debian:latest
