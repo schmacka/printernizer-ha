@@ -41,11 +41,19 @@ RUN pip3 install --no-cache-dir --user --break-system-packages \
         --extra-index-url https://www.piwheels.org/simple \
         --trusted-host www.piwheels.org \
         --default-timeout=300 \
-        -r /tmp/requirements.txt && \
-    pip3 install --no-cache-dir --user --break-system-packages \
+        -r /tmp/requirements.txt
+
+# Optional: matplotlib (STL/3MF preview thumbnails). Best-effort and via piwheels
+# so armv7 can use a prebuilt wheel; on any arch without a wheel it would build
+# from source (needs freetype + patch/git), so failures are non-fatal and preview
+# rendering simply degrades gracefully.
+RUN pip3 install --no-cache-dir --user --break-system-packages \
         --prefer-binary \
+        --extra-index-url https://www.piwheels.org/simple \
+        --trusted-host www.piwheels.org \
         --default-timeout=300 \
-        matplotlib
+        matplotlib \
+    || echo "matplotlib not installable on this architecture; STL preview rendering disabled"
 
 # Optional: build123d (parametric model generator). cadquery-ocp ships glibc
 # wheels for x86_64/aarch64 only — there is no 32-bit armv7 wheel — so this is
