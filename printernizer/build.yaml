@@ -1,7 +1,8 @@
 # Printernizer - Multi-Architecture Build Configuration
-# Debian (glibc) base images are required: the build123d model generator depends
-# on OpenCascade/OCP (manylinux/glibc wheels only, no musllinux build). matplotlib
-# STL previews also work on glibc. Covers amd64, aarch64 (arm64) and armv7.
+# Debian (glibc) base images: kept only so the optional matplotlib STL/3MF
+# preview thumbnails have prebuilt wheels (no musl wheel). The model generator
+# runs in the browser, so it needs nothing server-side. Covers amd64, aarch64,
+# armv7.
 
 build_from:
   aarch64: ghcr.io/home-assistant/aarch64-base-debian:latest

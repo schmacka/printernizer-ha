@@ -1,9 +1,7 @@
 # Printernizer - Home Assistant Add-on
-# Debian (glibc) base. Required by the build123d model generator: it depends on
-# OpenCascade via the OCP bindings, which ship manylinux (glibc) wheels only
-# (no musllinux build), so an Alpine base is not an option. matplotlib STL/3MF
-# previews also work here (no musl/aarch64 wheel constraint). All on amd64,
-# aarch64 and armv7.
+# Debian (glibc) base. The model generator runs in the browser (JSCAD), so the
+# server has no CAD dependency. Debian remains only so the optional matplotlib
+# STL/3MF preview thumbnails have prebuilt wheels. Builds on amd64, aarch64, armv7.
 
 # ============================================
 # Stage 1: Builder - Compile dependencies
@@ -33,9 +31,8 @@ COPY requirements.txt /tmp/
 # Install Python packages from requirements.txt.
 # Prefer pre-built binary wheels; fall back to source only if needed.
 # piwheels provides ARM wheels (arm64/armhf) for packages without official ones.
-# matplotlib and build123d are NOT in requirements.txt (excluded upstream for
-# musl/armv7 wheel compatibility) but work on Debian/glibc, so they are installed
-# here as optional extras.
+# matplotlib is NOT in requirements.txt (no musl wheel) but works on Debian, so
+# it is installed here as an optional extra (STL/3MF preview thumbnails).
 RUN pip3 install --no-cache-dir --user --break-system-packages \
         --prefer-binary \
         --extra-index-url https://www.piwheels.org/simple \
@@ -61,15 +58,9 @@ RUN pip3 install --no-cache-dir --user --break-system-packages \
         matplotlib \
     || echo "matplotlib not installable on this architecture; STL preview rendering disabled"
 
-# Optional: build123d (parametric model generator) — x86_64 only.
-# build123d cannot be installed on Linux ARM today: its pinned cadquery-ocp 7.8.x
-# has no linux-arm64 wheel (the arm64-capable 7.9.3 is pinned out), and build123d
-# imports lib3mf at import time, which also has no linux-arm64 wheel. So this
-# installs on amd64 and is skipped on aarch64/armv7. Best-effort — the generator
-# degrades gracefully (nav hidden, status available:false) where it is absent.
-RUN pip3 install --no-cache-dir --user --break-system-packages \
-        --prefer-binary --default-timeout=300 "build123d>=0.9.1" \
-    || echo "build123d not installable on this architecture; model generator disabled"
+# NOTE: the model generator no longer has a server-side dependency — geometry is
+# generated in the browser (JSCAD). No build123d / OpenCascade install is needed,
+# which is what makes the generator work on aarch64/armv7 too.
 
 # ============================================
 # Stage 2: Runtime - Lean production image
@@ -85,10 +76,9 @@ ENV LANG=C.UTF-8 \
     HA_INGRESS=true \
     PATH=/root/.local/bin:$PATH
 
-# Install runtime dependencies.
-# libgl1/libglu1-mesa/libxrender1/libxext6/libsm6/libgomp1/fontconfig are
-# required by OpenCascade/OCP (the build123d model generator). No external
-# CAD binary is needed — build123d renders geometry in-process.
+# Install runtime dependencies. No CAD/GL libs needed — the model generator runs
+# in the browser. libopenblas0/libgfortran5 back numpy/scipy; fonts-dejavu-core
+# backs matplotlib's STL/3MF preview thumbnails.
 RUN apt-get update && apt-get install -y --no-install-recommends \
         python3 \
         sqlite3 \
@@ -101,13 +91,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         libopenblas0 \
         libgfortran5 \
         libstdc++6 \
-        libgl1 \
-        libglu1-mesa \
-        libxrender1 \
-        libxext6 \
-        libsm6 \
-        libgomp1 \
-        fontconfig \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy compiled Python packages from builder stage

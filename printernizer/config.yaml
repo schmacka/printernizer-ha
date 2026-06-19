@@ -94,7 +94,7 @@ backup_exclude:
   - "*.tmp"
 
 # Supported architectures with base images
-# Debian (glibc) base required by build123d/OCP + matplotlib (see build.yaml)
+# Debian (glibc) base kept for optional matplotlib previews (see build.yaml)
 build_from:
   aarch64: ghcr.io/home-assistant/aarch64-base-debian:latest
   amd64: ghcr.io/home-assistant/amd64-base-debian:latest
