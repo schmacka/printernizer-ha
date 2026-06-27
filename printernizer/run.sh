@@ -23,6 +23,7 @@ TIMELAPSE_OUTPUT_FOLDER=$(bashio::config 'timelapse_output_folder' '/data/timela
 TIMELAPSE_OUTPUT_STRATEGY=$(bashio::config 'timelapse_output_strategy' 'separate')
 TIMELAPSE_AUTO_PROCESS_TIMEOUT=$(bashio::config 'timelapse_auto_process_timeout' '300')
 TIMELAPSE_CLEANUP_AGE_DAYS=$(bashio::config 'timelapse_cleanup_age_days' '30')
+SLICER_SERVICE_URL=$(bashio::config 'slicer_service_url' '')
 
 bashio::log.info "Configuration loaded from Home Assistant"
 bashio::log.info "  • Log Level: ${LOG_LEVEL}"
@@ -70,6 +71,9 @@ HA_INGRESS=true
 # Server configuration
 HOST=0.0.0.0
 PORT=8000
+
+# Slicer service (the Printernizer Slicer add-on); empty = slicing disabled
+SLICER_SERVICE_URL=${SLICER_SERVICE_URL}
 
 # Logging
 LOG_LEVEL=${LOG_LEVEL}

@@ -46,6 +46,7 @@ options:
   timelapse_auto_process_timeout: 300
   timelapse_cleanup_age_days: 30
   job_creation_auto_create: true
+  slicer_service_url: ""
 
 schema:
   log_level: list(debug|info|warning|error)?
@@ -59,6 +60,7 @@ schema:
   timelapse_auto_process_timeout: int(60,3600)?
   timelapse_cleanup_age_days: int(1,365)?
   job_creation_auto_create: bool?
+  slicer_service_url: str?
 
 # Image configuration
 # Pull the pre-built, CI-published per-arch images instead of building locally.
