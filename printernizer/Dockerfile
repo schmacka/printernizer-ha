@@ -47,7 +47,13 @@ RUN pip3 install --no-cache-dir --user --break-system-packages \
 # so armv7 can use a prebuilt wheel; on any arch without a wheel it would build
 # from source (needs freetype + patch/git), so failures are non-fatal and preview
 # rendering simply degrades gracefully.
+# --ignore-installed forces matplotlib's FULL dependency tree (packaging,
+# pyparsing, python-dateutil, etc.) into /root/.local. Without it, deps already
+# satisfied by a system package in the builder are skipped and never copied to
+# the final stage (COPY --from=builder /root/.local), so matplotlib fails to
+# import at runtime ("No module named 'packaging'") and STL previews silently break.
 RUN pip3 install --no-cache-dir --user --break-system-packages \
+        --ignore-installed \
         --prefer-binary \
         --extra-index-url https://www.piwheels.org/simple \
         --trusted-host www.piwheels.org \
