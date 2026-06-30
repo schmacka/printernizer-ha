@@ -28,7 +28,7 @@ ssdpy>=0.4.1  # SSDP protocol for Bambu Lab printer discovery
 netifaces-plus>=0.12.0  # Network interface enumeration (Windows-compatible fork of netifaces)
 
 # File Download and Management
-aiofiles==23.2.1
+aiofiles==25.1.0
 watchdog==3.0.0
 
 # Structured Logging
