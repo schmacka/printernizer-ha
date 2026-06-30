@@ -61,7 +61,7 @@ jobs:
       # `image: ghcr.io/schmacka/printernizer-ha-{arch}` resolves correctly.
       - name: Extract Docker metadata
         id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v6
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-${{ matrix.arch }}
           tags: |
