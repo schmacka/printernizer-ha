@@ -1,11 +1,10 @@
 version: 2
 updates:
-  # Python dependencies
-  - package-ecosystem: "pip"
-    directory: "/printernizer"
-    schedule:
-      interval: "weekly"
-    open-pull-requests-limit: 10
+  # NOTE: pip updates for /printernizer are intentionally NOT configured here.
+  # printernizer/requirements.txt is auto-synced from the upstream printernizer
+  # repo (see .github/workflows/sync-to-ha-repo.yml there). Dependabot PRs
+  # against it always conflict with the sync and go stale, so Python dependency
+  # updates are handled by Dependabot in the upstream repo instead.
 
   # Docker dependencies
   - package-ecosystem: "docker"
