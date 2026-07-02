@@ -61,7 +61,7 @@ openpyxl>=3.1.0  # Excel file generation for material exports
 
 # 3D File Processing and Preview Rendering
 trimesh>=4.0.5
-numpy-stl>=3.0.1
+numpy-stl>=4.0.0
 scipy>=1.11.0
 networkx>=3.0  # Required by trimesh for 3MF mesh processing
 # NOTE: build123d (parametric model generator) is an OPTIONAL dependency for the
