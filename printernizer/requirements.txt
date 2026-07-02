@@ -16,7 +16,7 @@ aiosqlite==0.22.1
 # HTTP Client for Prusa API
 aiohttp>=3.10.0
 requests>=2.32.4
-Brotli>=1.1.0  # Brotli compression support for aiohttp
+Brotli>=1.2.0  # Brotli compression support for aiohttp
 
 # MQTT Client for Bambu Lab Integration
 paho-mqtt>=2.0.0
