@@ -25,7 +25,7 @@ bambulabs-api>=1.0.0  # Primary library for Bambu Lab file operations
 # Network Discovery
 zeroconf>=0.132.0  # mDNS/Bonjour discovery for Prusa printers
 ssdpy>=0.4.1  # SSDP protocol for Bambu Lab printer discovery
-netifaces-plus>=0.12.0  # Network interface enumeration (Windows-compatible fork of netifaces)
+netifaces-plus>=0.12.5  # Network interface enumeration (Windows-compatible fork of netifaces)
 
 # File Download and Management
 aiofiles==25.1.0
