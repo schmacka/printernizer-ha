@@ -52,7 +52,7 @@ psutil==5.9.6
 # Test dependencies live in requirements-test.txt
 
 # Production Server
-gunicorn>=22.0.0
+gunicorn>=26.0.0
 
 # File Processing and Validation
 # magic==0.4.27
